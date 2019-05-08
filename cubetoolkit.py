@@ -33,5 +33,10 @@ def generate_pyramid_ini():
 parser = argh.ArghParser()
 parser.add_commands([generate_pyramid_ini])
 
-if __name__ == '__main__':
+
+def main():
     parser.dispatch()
+
+
+if __name__ == '__main__':
+    main()
