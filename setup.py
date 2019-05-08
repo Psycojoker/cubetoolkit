@@ -17,7 +17,6 @@ setup(name='cubetoolkit',
               'ctk = cubetoolkit:main',
           ]
       },
-      license='',
-      scripts=[],
-      keywords='',
+      license='gplv3+',
+      keywords='cubicweb',
       )
