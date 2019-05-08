@@ -10,7 +10,7 @@ setup(name='cubetoolkit',
       # long_description='',
       author_email='cortex@worlddomination.be',
       url='https://github.com/Psycojoker/cubetoolkit',
-      install_requires=['argh'],
+      install_requires=['argh', 'redbaron', 'requests'],
       entry_points={
           'console_scripts': [
               'cubetoolkit = cubetoolkit:main',
