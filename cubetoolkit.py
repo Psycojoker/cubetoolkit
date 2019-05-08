@@ -19,6 +19,8 @@ import requests
 
 from redbaron import RedBaron
 
+INSTANCES_PATH = os.path.expanduser("~/etc/cubicweb.d/")
+
 
 def _get_python_files(path="."):
     python_files = []
@@ -457,11 +459,23 @@ def autoupgradedependencies(test_command):
     try_to_upgrade_dependencies(test_command, depends, pkginfo_path, red, red_depends)
 
 
-def _generate_secure_random():
+def generate_secure_random():
     charset = string.digits + string.letters
     random_generator = random.SystemRandom()
 
     return "".join([random_generator.choice(charset) for _ in range(50)])
+
+
+def list_instances():
+    instances = []
+
+    for directory in os.listdir(INSTANCES_PATH):
+        full_path = os.path.join(INSTANCES_PATH, directory)
+
+        if os.path.isdir(full_path):
+            instances.append(directory)
+
+    return instances
 
 
 PYRAMID_INI_TEMPLATE = """\
@@ -471,16 +485,33 @@ cubicweb.session.secret = SECRET_1
 cubicweb.auth.authtkt.session.secret = SECRET_2
 cubicweb.auth.authtkt.persistent.secret = SECRET_3
 cubicweb.auth.authtkt.session.secure = no
-cubicweb.auth.authtkt.persistent.secure = no"""
+cubicweb.auth.authtkt.persistent.secure = no
+"""
 
 
-def generate_pyramid_ini():
-    # TODO
-    # -i --instance
-    # -f --force
-    print(PYRAMID_INI_TEMPLATE.replace("SECRET_1", _generate_secure_random())
-                              .replace("SECRET_2", _generate_secure_random())
-                              .replace("SECRET_3", _generate_secure_random()))
+def generate_pyramid_ini(instance=None, force=False):
+    pyramid_ini = (PYRAMID_INI_TEMPLATE.replace("SECRET_1", generate_secure_random())
+                                       .replace("SECRET_2", generate_secure_random())
+                                       .replace("SECRET_3", generate_secure_random()))
+    if instance:
+        all_instances = list_instances()
+
+        if instance not in all_instances:
+            print("ERROR: %s is not a valid instance name, available instances are: %s"
+                  % (instance, ", ".join(all_instances)))
+            sys.exit(1)
+
+        pyramid_ini_path = os.path.join(INSTANCES_PATH, instance, "pyramid.ini")
+
+        if not os.path.exists(pyramid_ini_path) or force:
+            with open(pyramid_ini_path, "w") as f:
+                f.write(pyramid_ini)
+        else:
+            print("ERROR: pyramid.ini file already exists at %s, use -f/--force if you want to overwrite it"
+                  % pyramid_ini_path)
+
+    else:
+        print(pyramid_ini)
 
 
 parser = argh.ArghParser()
