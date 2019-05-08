@@ -12,6 +12,7 @@ setup(name='cubetoolkit',
       author_email='cortex@worlddomination.be',
       url='https://github.com/Psycojoker/cubetoolkit',
       install_requires=['argh', 'redbaron', 'requests'],
+      py_modules=['cubetoolkit'],
       entry_points={
           'console_scripts': [
               'cubetoolkit = cubetoolkit:main',
