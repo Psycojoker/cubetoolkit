@@ -8,7 +8,7 @@ tools and scripts in the same place.
 Installation
 ============
 
-    pip install --user git+https://github.com/Psycojoker/cubetoolkit
+    pip install --user cubetoolkit
 
 Available tools
 ===============
