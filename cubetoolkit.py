@@ -513,8 +513,43 @@ def generate_pyramid_ini(instance=None, force=False):
         print(pyramid_ini)
 
 
+def generate_doc():
+    if os.path.exists("doc"):
+        print("'doc' dir already exist, abort")
+        sys.exit(1)
+
+    dirs = os.listdir(".")
+
+    cube_subdirs = [os.path.join(".", x) for x in dirs if os.path.isdir(x)
+                                                          and x.startswith("cubicweb_")
+                                                          and "." not in x]
+
+    if not cube_subdirs:
+        print("Couldn't find the cube module :(")
+        sys.exit(1)
+
+    cube_subdir = cube_subdirs[0]
+    cube_name = cube_subdir.split("_", 1)[1]
+
+    doc_template_path = os.path.join(os.path.split(os.path.realpath(__file__))[0], "templates/doc/")
+
+    os.makedirs("doc")
+    os.makedirs("doc/_static")
+
+    for i in os.listdir(doc_template_path):
+        with open(os.path.join(doc_template_path, i), "r") as source:
+            with open(os.path.join("doc", i), "w") as destination:
+                destination.write(source.read().replace("CUBE_NAME", cube_name))
+
+    subprocess.check_call(["sphinx-apidoc", cube_subdir, "-o", "doc"])
+
+    print("Doc generate in 'doc' folder, do a 'pip install sphinx && pip install -e' in a virtualenv then 'make html' in the 'doc' folder and you'll have your doc built in doc/_build/html/index.html")
+    print("If the __pkginfo__.py doesn't list all needed dependencies you might need to install more by hand.")
+    print("Happy doc writting :)")
+
+
 parser = argh.ArghParser()
-parser.add_commands([generate_pyramid_ini, autoupgradedependencies])
+parser.add_commands([generate_pyramid_ini, autoupgradedependencies, generate_doc])
 
 
 def main():

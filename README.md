@@ -65,3 +65,16 @@ Examples:
 
     autoupgradedependencies "tox -e py27 --recreate"
     autoupgradedependencies "py.test tests"
+
+generate-doc
+------------
+
+This tool will generate a base documentation for a cube using `sphinx-apidoc`
+to expose the module content in the doc.
+
+Only works for new-style cube.
+
+Usage:
+
+    # in the same directory that the cubicweb_$cube directory
+    cubetoolkit generate-doc
