@@ -21,15 +21,15 @@ This tool generates the needed `pyramid.ini` file for instances using secure ran
 Usage:
 
     # this will print the generated file on the standard output
-    ctk generate-pyramid-ini
+    cubetoolkit generate-pyramid-ini
 
     # this will put the file in the instance folder if not present
-    ctk generate-pyramid-ini --instance instanceName
+    cubetoolkit generate-pyramid-ini --instance instanceName
     # or
-    ctk generate-pyramid-ini -i instanceName
+    cubetoolkit generate-pyramid-ini -i instanceName
 
     # this will in addition overwrite an existing pyramid.ini file
-    ctk generate-pyramid-ini --instance instanceName -f
+    cubetoolkit generate-pyramid-ini --instance instanceName -f
 
 autoupgradedependencies
 -----------------------
@@ -59,12 +59,12 @@ Usage:
 
 In the folder where the `.hg` is in a classic cube.
 
-    autoupgradedependencies "test command"
+    cubetoolkit autoupgradedependencies "test command"
 
 Examples:
 
-    autoupgradedependencies "tox -e py27 --recreate"
-    autoupgradedependencies "py.test tests"
+    cubetoolkit autoupgradedependencies "tox -e py27 --recreate"
+    cubetoolkit autoupgradedependencies "py.test tests"
 
 generate-doc
 ------------
