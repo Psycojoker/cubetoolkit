@@ -4,7 +4,7 @@
 from setuptools import setup
 
 setup(name='cubetoolkit',
-      version='0.1.1',
+      version='0.2',
       description='toolkit to works on cubicweb cubes',
       author='Laurent Peuch',
       long_description=open("README.md", "r").read(),
