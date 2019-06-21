@@ -239,7 +239,7 @@ def fix_cube_import(cube_root, filename):
                     f.write(l)
 
 
-def newstyle_cube(path):
+def to_newstyle_cube(path):
     "Upgrade oldstyle CW cube to newstyle"
     path = os.path.realpath(os.path.expanduser(path))
 
@@ -766,7 +766,7 @@ def generate_doc():
 
 
 parser = argh.ArghParser()
-parser.add_commands([generate_pyramid_ini, autoupgradedependencies, generate_doc, newstyle_cube])
+parser.add_commands([generate_pyramid_ini, autoupgradedependencies, generate_doc, to_newstyle_cube])
 
 
 def main():
