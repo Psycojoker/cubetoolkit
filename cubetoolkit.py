@@ -2,16 +2,20 @@
 
 import os
 import re
+import io
 import sys
 import string
 import random
 import tarfile
+import fnmatch
 import operator
+import mimetypes
 import itertools
 import subprocess
 
 from datetime import datetime
 from distutils.version import LooseVersion
+from contextlib import contextmanager
 
 import argh
 import requests
@@ -46,6 +50,216 @@ def _get_python_files(path="."):
                     python_files.append(file)
 
     return python_files
+
+
+@contextmanager
+def cd(newdir):
+    """ Custom change directory command. """
+    prevdir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(prevdir)
+
+
+def print_warning(msg):
+    """ Custom print coloring printed message. """
+    print('\x1b[1;33;40m %s \x1b[0m' % msg)
+
+
+def _dtnm(path):
+    """ Returns a list of folders to not move. """
+
+    folders_not_to_move = []
+    for root, dirs, files in os.walk(path):
+        for d in ['bin', 'debian', 'test', '.hg', '.tox', 'cubicweb_*']:
+            for folder in fnmatch.filter(dirs, d):
+                folders_not_to_move.append(folder)
+        break
+    return folders_not_to_move
+
+
+def _ftnm(path):
+    """ Returns a list of files to not move. """
+
+    files_not_to_move = []
+    for root, dirs, files in os.walk(path):
+        for f in ['setup.py', 'README', '*.ini', 'MANIFEST.in',
+                  '*.txt', '*.spec', '.hgtags', '.hgrc', 'test*']:
+            for filename in fnmatch.filter(files, f):
+                files_not_to_move.append(filename)
+        break
+    return files_not_to_move
+
+
+def create_cube_folder(cube_root, cube_folder):
+    """ Creates the cube folder. """
+
+    with cd(cube_root):
+        try:
+            if not os.path.exists(cube_folder):
+                os.makedirs(cube_folder)
+                print_warning('Info: %s successfully created' % cube_folder)
+                return cube_folder
+            else:
+                print_warning('Error: %s already exists.' % cube_folder)
+        except OSError:
+            print_warning('Error: Creating directory %s.' % cube_folder)
+
+
+def update_pkginfo(pkginfo):
+    """ Update __pkginfo__.py content. """
+
+    # retrieve numversion, depends, recommends
+    __pkginfo__ = {}
+    with open(pkginfo, "r") as f:
+        exec(f.read(), __pkginfo__)
+
+    context = {
+        'numversion': __pkginfo__['numversion'],
+        'cubename': os.path.split(pkginfo)[0],
+        'distname': 'cubicweb-' + os.path.split(pkginfo)[0],
+        'license': __pkginfo__['license'],
+        'author': __pkginfo__['author'],
+        'author-email': __pkginfo__['author_email'],
+        'shortdesc': __pkginfo__['description'],
+        'dependencies': __pkginfo__['__depends__'],
+    }
+
+    if '__recommends__' in __pkginfo__:
+        context['__recommends__'] = __pkginfo__['__recommends__']
+
+    command = "hg rm %s" % pkginfo
+    subprocess.Popen(command, shell=True).wait()
+
+    url = "https://hg.logilab.org/master/cubicweb/raw-file/tip/cubicweb/skeleton/cubicweb_CUBENAME/__pkginfo__.py.tmpl"
+
+    response = requests.get(url)
+    with open(pkginfo, 'w') as out:
+        template = response.content.decode()
+        new_pkginfo = template % context
+        new_pkginfo = new_pkginfo.split('\n')
+
+        for l in new_pkginfo:
+            if "numversion" in l:
+                l = re.sub(r"^numversion ?= ?.*$", "numversion = %s" % (context['numversion'],), l)
+            # if '>= ' in l: # not sure how to update cubicweb version to 3.24
+            #     l = re.sub(r"'^.*cubicweb' ?: ?'>?= ?'\d{1}\.\d{1}\.\d{1}',?.*", "'cubicweb': '>= 3.24.0'", l)
+            out.write(l + '\n')
+
+    command = "hg add %s" % pkginfo
+    subprocess.Popen(command, shell=True).wait()
+    print_warning('Info: Successfully updated __pkginfo__.py.')
+
+
+def move_cube_files(cube_root, cube_folder):
+    """ Move cube files from root to cube folder. """
+
+    ftnm = _ftnm(cube_root)
+    dtnm = _dtnm(cube_root)
+    cf = []
+
+    for root, dirs, files in os.walk(cube_root):
+        for filename in files:
+            if fnmatch.fnmatch(filename, '__pkginfo__.py'):
+                update_pkginfo(os.path.join(cube_root, filename))
+            if filename not in ftnm:
+                cf.append(filename)
+
+        for dirname in dirs:
+            if dirname not in dtnm:
+                cf.append(dirname)
+        break  # we just need level 1 walk
+
+    with cd(cube_root):
+        for i in cf:
+            command = "hg mv %s %s" % (i, cube_folder)
+            subprocess.Popen(command, shell=True).wait()
+
+    print_warning('Info: cube files successfully moved into %s' % cube_root)
+
+
+def replace_cube_file(cube_root, filename):
+    """ Delete & replace files that needs to be rewritten using the skeleton. """
+
+    with cd(cube_root):
+        command = "hg rm %s" % filename
+        subprocess.Popen(command, shell=True).wait()
+
+        url = "https://hg.logilab.org/master/cubicweb/raw-file/tip/cubicweb/skeleton/%s.tmpl" % filename
+        context = {'cubename': cube_root, 'distname': 'cubicweb-' + cube_root}
+        response = requests.get(url)
+        with open(filename, 'w') as out:
+            template = response.content.decode()
+            out.write(template % context)
+
+            command = "hg add %s" % filename
+            subprocess.Popen(command, shell=True).wait()
+            print_warning('Info: %s successfully updated' % filename)
+
+
+def remove_useless_files(cube_root):
+    """ Remove all the files that are no more used. """
+
+    with cd(cube_root):
+        for filename in ['apycot.ini', 'pytestconf.py']:
+            command = "hg rm %s" % filename
+            subprocess.Popen(command, shell=True).wait()
+            print_warning('Info: %s successfully removed' % filename)
+
+
+def fix_unittest_import(cube_root, filename):
+    """ Make sure we use unittest from standard lib."""
+    with cd(cube_root):
+        content = []
+        with open(filename, 'r') as f:
+            content = f.readlines()
+
+        with open(filename, 'w') as f:
+            for l in content:
+                if "unittest_main" in l:
+                    l = re.sub(r"^from logilab\.common\.testlib import unittest_main$", r"import unittest", l)
+                    l = re.sub(r"^    from logilab\.common\.testlib import unittest_main$", r"    import unittest", l)
+                    l = re.sub(r"^    unittest_main\(\)$", "    unittest.main()", l)
+                f.write(l)
+
+
+def fix_cube_import(cube_root, filename):
+    """ Make sure we import cube using new layout."""
+    with cd(cube_root):
+        content = []
+        with open(filename, 'r') as f:
+            content = f.readlines()
+
+        with open(filename, 'w') as f:
+            for l in content:
+                if "cubes." in l:
+                    l = re.sub(r"", r"", l)
+                    f.write(l)
+
+
+def newstyle_cube(path):
+    "Upgrade oldstyle CW cube to newstyle"
+    path = os.path.realpath(os.path.expanduser(path))
+
+    cube_root = os.path.basename(path)
+    cube_folder = 'cubicweb_%s' % cube_root
+
+    # setup.py and MANIFEST.in can just be replaced
+    for i in ['setup.py', 'MANIFEST.in', 'tox.ini']:
+        replace_cube_file(cube_root, i)
+
+    create_cube_folder(cube_root, cube_folder)
+    move_cube_files(cube_root, cube_folder)
+
+    py_files = _get_python_files(cube_root)
+    # remove_useless_files
+
+    for f in py_files:
+        fix_unittest_import(cube_root, f)
+        # fix_cubes_import
+        # automatically call autopep8?
 
 
 def find_pkginfo(path):
@@ -548,7 +762,7 @@ def generate_doc():
 
 
 parser = argh.ArghParser()
-parser.add_commands([generate_pyramid_ini, autoupgradedependencies, generate_doc])
+parser.add_commands([generate_pyramid_ini, autoupgradedependencies, generate_doc, newstyle_cube])
 
 
 def main():
