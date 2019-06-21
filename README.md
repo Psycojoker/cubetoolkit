@@ -78,3 +78,13 @@ Usage:
 
     # in the same directory that the cubicweb_$cube directory
     cubetoolkit generate-doc
+
+to-newstyle-cube
+----------------
+
+This tool by nsukami will do /most/ of the work to migrate a cube in the
+oldstyle format to the new one.
+
+Usage:
+
+    cubetoolkit to-newstyle-cube /path/to/cube
