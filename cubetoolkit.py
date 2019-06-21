@@ -243,6 +243,10 @@ def newstyle_cube(path):
     "Upgrade oldstyle CW cube to newstyle"
     path = os.path.realpath(os.path.expanduser(path))
 
+    if not os.path.exists(path):
+        print("Error: '%s' doesn't exist" % path)
+        sys.exit(1)
+
     cube_root = os.path.basename(path)
     cube_folder = 'cubicweb_%s' % cube_root
 
