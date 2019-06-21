@@ -93,10 +93,10 @@ def _ftnm(path):
     return files_not_to_move
 
 
-def create_cube_folder(cube_root, cube_folder):
+def create_cube_folder(path, cube_root, cube_folder):
     """ Creates the cube folder. """
 
-    with cd(cube_root):
+    with cd(path):
         try:
             if not os.path.exists(cube_folder):
                 os.makedirs(cube_folder)
@@ -153,17 +153,17 @@ def update_pkginfo(pkginfo):
     print_warning('Info: Successfully updated __pkginfo__.py.')
 
 
-def move_cube_files(cube_root, cube_folder):
+def move_cube_files(path, cube_root, cube_folder):
     """ Move cube files from root to cube folder. """
 
     ftnm = _ftnm(cube_root)
     dtnm = _dtnm(cube_root)
     cf = []
 
-    for root, dirs, files in os.walk(cube_root):
+    for root, dirs, files in os.walk(path):
         for filename in files:
             if fnmatch.fnmatch(filename, '__pkginfo__.py'):
-                update_pkginfo(os.path.join(cube_root, filename))
+                update_pkginfo(os.path.join(path, filename))
             if filename not in ftnm:
                 cf.append(filename)
 
@@ -172,7 +172,7 @@ def move_cube_files(cube_root, cube_folder):
                 cf.append(dirname)
         break  # we just need level 1 walk
 
-    with cd(cube_root):
+    with cd(path):
         for i in cf:
             command = "hg mv %s %s" % (i, cube_folder)
             subprocess.Popen(command, shell=True).wait()
@@ -180,10 +180,10 @@ def move_cube_files(cube_root, cube_folder):
     print_warning('Info: cube files successfully moved into %s' % cube_root)
 
 
-def replace_cube_file(cube_root, filename):
+def replace_cube_file(path, cube_root, filename):
     """ Delete & replace files that needs to be rewritten using the skeleton. """
 
-    with cd(cube_root):
+    with cd(path):
         command = "hg rm %s" % filename
         subprocess.Popen(command, shell=True).wait()
 
@@ -209,9 +209,9 @@ def remove_useless_files(cube_root):
             print_warning('Info: %s successfully removed' % filename)
 
 
-def fix_unittest_import(cube_root, filename):
+def fix_unittest_import(path, filename):
     """ Make sure we use unittest from standard lib."""
-    with cd(cube_root):
+    with cd(path):
         content = []
         with open(filename, 'r') as f:
             content = f.readlines()
@@ -252,16 +252,16 @@ def newstyle_cube(path):
 
     # setup.py and MANIFEST.in can just be replaced
     for i in ['setup.py', 'MANIFEST.in', 'tox.ini']:
-        replace_cube_file(cube_root, i)
+        replace_cube_file(path, cube_root, i)
 
-    create_cube_folder(cube_root, cube_folder)
-    move_cube_files(cube_root, cube_folder)
+    create_cube_folder(path, cube_root, cube_folder)
+    move_cube_files(path, cube_root, cube_folder)
 
-    py_files = _get_python_files(cube_root)
+    py_files = _get_python_files(path)
     # remove_useless_files
 
     for f in py_files:
-        fix_unittest_import(cube_root, f)
+        fix_unittest_import(path, f)
         # fix_cubes_import
         # automatically call autopep8?
 
