@@ -760,7 +760,7 @@ def generate_doc():
 
     subprocess.check_call(["sphinx-apidoc", cube_subdir, "-o", "doc"])
 
-    print("Doc generate in 'doc' folder, do a 'pip install sphinx && pip install -e' in a virtualenv then 'make html' in the 'doc' folder and you'll have your doc built in doc/_build/html/index.html")
+    print("Doc generate in 'doc' folder, do a 'pip install sphinx && pip install -e .' in a virtualenv then 'make html' in the 'doc' folder and you'll have your doc built in doc/_build/html/index.html")
     print("If the __pkginfo__.py doesn't list all needed dependencies you might need to install more by hand.")
     print("Happy doc writting :)")
 
