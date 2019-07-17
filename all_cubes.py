@@ -18,7 +18,6 @@ CUBES_SKIP = (
     'bookreader', 'externalauth', 'sitemaps', 'meeting'
 )
 
-# list
 # update
 # shell
 # all other commands of cubtk
@@ -33,7 +32,12 @@ def list_cube():
         if not i.h3.text.startswith("cubicweb-"):
             continue
 
-        cubes.append(i.h3.text.split('-', 1)[1])
+        cube = i.h3.text.split('-', 1)[1]
+
+        if cube in CUBES_SKIP:
+            continue
+
+        cubes.append(cube)
 
     return cubes
 
@@ -44,9 +48,6 @@ def clone():
     for cube in cubes:
         if os.path.exists(cube):
             print("Skip %s, already cloned" % cube)
-            continue
-
-        if cube in CUBES_SKIP:
             continue
 
         if cube in SPECIAL_CASES_CUBE_URL:
