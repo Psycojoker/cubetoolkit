@@ -11,12 +11,13 @@ setup(name='cubetoolkit',
       long_description_content_type='text/markdown',
       author_email='cortex@worlddomination.be',
       url='https://github.com/Psycojoker/cubetoolkit',
-      install_requires=['argh', 'redbaron', 'requests', 'sphinx'],
+      install_requires=['argh', 'redbaron', 'requests', 'sphinx', 'beautifulsoup4'],
       py_modules=['cubetoolkit'],
       entry_points={
           'console_scripts': [
               'cubetoolkit = cubetoolkit:main',
               'ctk = cubetoolkit:main',
+              'all-cubes = all_cubes:main',
           ]
       },
       license='gplv3+',
