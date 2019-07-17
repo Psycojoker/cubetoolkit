@@ -735,7 +735,7 @@ def generate_doc():
         print("'doc' dir already exist, abort")
         sys.exit(1)
 
-    dirs = os.listdir(".")
+    dirs = os.listdir(os.path.realpath(os.path.curdir))
 
     cube_subdirs = [os.path.join(".", x) for x in dirs if os.path.isdir(x)
                                                           and x.startswith("cubicweb_")
@@ -765,8 +765,10 @@ def generate_doc():
     print("Happy doc writting :)")
 
 
+functions = [generate_pyramid_ini, autoupgradedependencies, generate_doc, to_newstyle_cube]
+
 parser = argh.ArghParser()
-parser.add_commands([generate_pyramid_ini, autoupgradedependencies, generate_doc, to_newstyle_cube])
+parser.add_commands(functions)
 
 
 def main():
