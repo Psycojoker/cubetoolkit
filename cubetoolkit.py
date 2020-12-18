@@ -398,7 +398,7 @@ def parse_conditions(conditions):
 
 def try_to_upgrade_dependencies(test_command, depends, pkginfo_path, red, red_depends):
     def change_dependency_version_on_disk(entry, value):
-        entry.value = ("'== %s'" % value).encode("Utf-8")
+        entry.value = ("'== %s'" % value)
 
         dumps = red.dumps()
         with open(pkginfo_path, "w") as pkginfo_file:
