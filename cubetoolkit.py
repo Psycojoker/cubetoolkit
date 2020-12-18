@@ -365,7 +365,7 @@ def filter_pkg_that_can_be_upgraded(depends):
         print("")
         print("Packages that can upgrades with all those available verisons:")
         for key, value in new_depends.items():
-            print("* %s (%s) to %s" % (key, value["current_version_scheme"], ", ".join(map(lambda x: x["version"], value["possible_upgrades"]))))
+            print("* %s (%s) to %s" % (key, value["current_version_scheme"], ", ".join([x["version"] for x in value["possible_upgrades"]])))
 
     return new_depends
 
@@ -608,9 +608,9 @@ def try_to_upgrade_dependencies(test_command, depends, pkginfo_path, red, red_de
         print("Upgraded to a more up to date version but fail to upgrade to the latest one:")
 
         for i in summary["full_success"]:
-            print("* %s from '%s' to %s, newest versions: %s, log: %s" % (i["dependency"],
+            print("* %s from '%s' to %s, newest versions: [%s], log: %s" % (i["dependency"],
                                                                           i["from"], i["to"],
-                                                                          map(lambda x: x.vstring, i["possible_upgrades"]),
+                                                                          ", ".join([x["version"] for x in i["possible_upgrades"]]),
                                                                           i["log_file_name"]))
 
     if summary["total_failure"]:
@@ -618,9 +618,9 @@ def try_to_upgrade_dependencies(test_command, depends, pkginfo_path, red, red_de
         print("Totally fail to upgrade to any version")
 
         for i in summary["total_failure"]:
-            print("* %s, possible upgrades: %s, log: %s" % (i["dependency"], i["from"],
-                                                            map(lambda x: x.vstring, i["possible_upgrades"]),
-                                                            i["log_file_name"]))
+            print("* %s, possible upgrades: [%s], log: %s" % (i["dependency"],
+                                                              ", ".join([x["version"] for x in i["possible_upgrades"]]),
+                                                              i["log_file_name"]))
 
     print("")
     if summary["commits"]:
