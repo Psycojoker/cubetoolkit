@@ -341,6 +341,8 @@ def filter_pkg_that_can_be_upgraded(depends):
             print("No specified version for %s, drop it" % key)
             continue
 
+        value["all_versions"] = [version for version in value["all_versions"] if not set(string.ascii_letters).intersection(version["version"])]
+
         compatible_versions = value["all_versions"]
 
         for (op, version) in conditions:
