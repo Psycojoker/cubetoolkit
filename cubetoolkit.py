@@ -2,14 +2,12 @@
 
 import os
 import re
-import io
 import sys
 import string
 import random
 import tarfile
 import fnmatch
 import operator
-import mimetypes
 import itertools
 import subprocess
 
@@ -141,12 +139,12 @@ def update_pkginfo(pkginfo):
         new_pkginfo = template % context
         new_pkginfo = new_pkginfo.split('\n')
 
-        for l in new_pkginfo:
-            if "numversion" in l:
-                l = re.sub(r"^numversion ?= ?.*$", "numversion = %s" % (context['numversion'],), l)
+        for line in new_pkginfo:
+            if "numversion" in line:
+                line = re.sub(r"^numversion ?= ?.*$", "numversion = %s" % (context['numversion'],), line)
             # if '>= ' in l: # not sure how to update cubicweb version to 3.24
             #     l = re.sub(r"'^.*cubicweb' ?: ?'>?= ?'\d{1}\.\d{1}\.\d{1}',?.*", "'cubicweb': '>= 3.24.0'", l)
-            out.write(l + '\n')
+            out.write(line + '\n')
 
     command = "hg add %s" % pkginfo
     subprocess.Popen(command, shell=True).wait()
@@ -217,12 +215,12 @@ def fix_unittest_import(path, filename):
             content = f.readlines()
 
         with open(filename, 'w') as f:
-            for l in content:
-                if "unittest_main" in l:
-                    l = re.sub(r"^from logilab\.common\.testlib import unittest_main$", r"import unittest", l)
-                    l = re.sub(r"^    from logilab\.common\.testlib import unittest_main$", r"    import unittest", l)
-                    l = re.sub(r"^    unittest_main\(\)$", "    unittest.main()", l)
-                f.write(l)
+            for line in content:
+                if "unittest_main" in line:
+                    line = re.sub(r"^from logilab\.common\.testlib import unittest_main$", r"import unittest", line)
+                    line = re.sub(r"^    from logilab\.common\.testlib import unittest_main$", r"    import unittest", line)
+                    line = re.sub(r"^    unittest_main\(\)$", "    unittest.main()", line)
+                f.write(line)
 
 
 def fix_cube_import(cube_root, filename):
@@ -233,10 +231,10 @@ def fix_cube_import(cube_root, filename):
             content = f.readlines()
 
         with open(filename, 'w') as f:
-            for l in content:
-                if "cubes." in l:
-                    l = re.sub(r"", r"", l)
-                    f.write(l)
+            for line in content:
+                if "cubes." in line:
+                    line = re.sub(r"", r"", line)
+                    f.write(line)
 
 
 def to_newstyle_cube(path):
@@ -738,8 +736,8 @@ def generate_doc():
     dirs = os.listdir(os.path.realpath(os.path.curdir))
 
     cube_subdirs = [os.path.join(".", x) for x in dirs if os.path.isdir(x)
-                                                          and x.startswith("cubicweb_")
-                                                          and "." not in x]
+                    and x.startswith("cubicweb_")
+                    and "." not in x]
 
     if not cube_subdirs:
         print("Couldn't find the cube module :(")
