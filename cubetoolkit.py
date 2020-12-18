@@ -609,9 +609,9 @@ def try_to_upgrade_dependencies(test_command, depends, pkginfo_path, red, red_de
 
         for i in summary["full_success"]:
             print("* %s from '%s' to %s, newest versions: [%s], log: %s" % (i["dependency"],
-                                                                          i["from"], i["to"],
-                                                                          ", ".join([x["version"] for x in i["possible_upgrades"]]),
-                                                                          i["log_file_name"]))
+                                                                            i["from"], i["to"],
+                                                                            ", ".join([x["version"] for x in i["possible_upgrades"]]),
+                                                                            i["log_file_name"]))
 
     if summary["total_failure"]:
         print("")
