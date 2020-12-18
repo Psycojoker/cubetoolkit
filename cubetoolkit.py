@@ -638,7 +638,7 @@ def autoupgradedependencies(test_command):
     if test_command.strip().startswith("tox") and "--recreate" not in test_command:
         print("WARNING: if you are using tox you very likely want to put '--recreate' in the command")
 
-    if subprocess.check_output(["hg", "diff"]) != '':
+    if len(subprocess.check_output(["hg", "diff"]).strip()) != 0:
         print("ERROR: according to 'hg diff' repository is not clean, abort")
         sys.exit(1)
 
